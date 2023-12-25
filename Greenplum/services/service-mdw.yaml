@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mdw
+  namespace: devops-infra-beta
+spec:
+  type: NodePort
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      nodePort: 31777
+  selector:
+    app: mdw

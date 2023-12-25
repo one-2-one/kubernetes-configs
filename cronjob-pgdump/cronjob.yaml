@@ -1,0 +1,32 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: devops-infra-beta
+spec:
+  schedule: "0 01 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+            - name: dump
+              image: nexus.devops.example.com:8082/devops/ubuntu-cronjob
+              volumeMounts:
+                - name: nfs
+                  mountPath: /backup
+                  subPath: backup
+                - name: secrets-volume
+                  mountPath: /tmp
+              args:
+                - /tmp/initscript.sh
+          restartPolicy: Never
+          volumes:
+            - name: nfs
+              persistentVolumeClaim:
+                claimName: data-psql-vault-postgresql-0
+            - name: secrets-volume
+              secret:
+                secretName: bashscript-cronjob
+                defaultMode: 0777

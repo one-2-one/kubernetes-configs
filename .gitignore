@@ -1,0 +1,5 @@
+**/.DS_Store
+
+**/secrets.yaml
+
+Greenplum/configs/configmap.yaml

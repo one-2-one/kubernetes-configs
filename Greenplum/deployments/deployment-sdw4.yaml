@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greenplum-sdw4
+  namespace: devops-infra-beta
+spec:
+  selector:
+    matchLabels:
+      app: sdw4
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sdw4
+    spec:
+      containers:
+        - name: greenplum-sdw4
+          image: nexus.devops.example.com:8082/devops/greenplum-db-segment:6.22.1.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: ssh
+              containerPort: 22
+            - name: postgres
+              containerPort: 5432
+            - name: pxf
+              containerPort: 5888
+            - name: segment1
+              containerPort: 6000
+            - name: segment2
+              containerPort: 6001
+            - name: segment3
+              containerPort: 6002
+            - name: segment4
+              containerPort: 6003
+            - name: segment5
+              containerPort: 6004
+            - name: segment6
+              containerPort: 6005
+          resources:
+            requests:
+              memory: "24Gi"
+              cpu: "12000m"
+            limits:
+              memory: "32Gi"
+              cpu: "16000m"
+          volumeMounts:
+            - name: nfs-mount
+              mountPath: /data1
+              subPath: data1
+            - name: nfs-mount
+              mountPath: /data2
+              subPath: data2
+            - name: greenplum-configs
+              mountPath: /etc/sysctl.conf
+              subPath: sysctl.conf
+            - name: greenplum-configs
+              mountPath: /home/gpadmin/segment_start_gpdb.sh
+              subPath: segment_start_gpdb.sh
+          securityContext:
+              privileged: true
+      volumes:
+        - name: nfs-mount
+          persistentVolumeClaim:
+            claimName: pvc-nfs-greenplum-sdw4
+        - name: greenplum-configs
+          configMap:
+            name: greenplum-configs
+            defaultMode: 0777

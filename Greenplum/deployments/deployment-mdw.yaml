@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greenplum-mdw
+  namespace: devops-infra-beta
+spec:
+  selector:
+    matchLabels:
+      app: mdw
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mdw
+    spec:
+      containers:
+        - name: greenplum-mdw
+          image: nexus.devops.example.com:8082/devops/greenplum-db-master:6.22.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+            - name: pxf
+              containerPort: 5888
+          resources:
+            requests:
+              memory: "12Gi"
+              cpu: "6000m"
+            limits:
+              memory: "24Gi"
+              cpu: "12000m"
+          volumeMounts:
+            - name: nfs-mount
+              mountPath: /data
+              subPath: data
+            - name: greenplum-configs
+              mountPath: /home/gpadmin/gpconfigs/hostsfile.txt
+              subPath: hostfile.txt
+            - name: greenplum-configs
+              mountPath: /home/gpadmin/gpconfigs/hostsfile_init.txt
+              subPath: hostsfile_init.txt
+            - name: greenplum-configs
+              mountPath: /home/gpadmin/gpconfigs/gpinitsystem_config.config
+              subPath: gpinitsystem_config.txt
+            - name: greenplum-configs
+              mountPath: /home/gpadmin/start_gpdb.sh
+              subPath: start_gpdb.sh
+            - name: greenplum-configs
+              mountPath: /etc/sysctl.conf
+              subPath: sysctl.conf
+            - name: greenplum-configs
+              mountPath: /usr/local/pxf-gp6/servers/default/yarn-site.xml
+              subPath: yarn-site.xml
+            - name: greenplum-configs
+              mountPath: /usr/local/pxf-gp6/servers/default/pxf-site.xml
+              subPath: pxf-site.xml
+            - name: greenplum-configs
+              mountPath: /usr/local/pxf-gp6/servers/default/hive-site.xml
+              subPath: hive-site.xml
+            - name: greenplum-configs
+              mountPath: /usr/local/pxf-gp6/servers/default/hdfs-site.xml
+              subPath: hdfs-site.xml
+            - name: greenplum-configs
+              mountPath: /usr/local/pxf-gp6/servers/default/core-site.xml
+              subPath: core-site.xml
+          securityContext:
+              privileged: true
+      volumes:
+        - name: nfs-mount
+          persistentVolumeClaim:
+            claimName: pvc-nfs-greenplum-mdw
+        - name: greenplum-configs
+          configMap:
+            name: greenplum-configs
+            defaultMode: 0777

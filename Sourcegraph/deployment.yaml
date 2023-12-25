@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab-sourcegraph
+  namespace: prod
+spec:
+  selector:
+    matchLabels:
+      app: gitlab-sourcegraph
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gitlab-sourcegraph
+    spec:
+      containers:
+        - name: gitlab-sourcegraph
+          image: sourcegraph/server:4.0.0
+          imagePullPolicy: Always
+          ports:
+            - name: main
+              containerPort: 7443
+            - name: additional
+              containerPort: 3070
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "4000m"
+            limits:
+              memory: "8Gi"
+              cpu: "6000m"
+          env:
+            - name: TZ
+              value: Europe/Kiev
+          volumeMounts:
+            - name: nfs-mount
+              mountPath: /etc/sourcegraph
+              subPath: config
+            - name: nfs-mount
+              mountPath: /var/opt/sourcegraph
+              subPath: data
+            # - name: ssh-key
+            #   mountPath: /etc/sourcegraph/sourcegraph.crt
+            #   subPath: tls.crt
+            # - name: ssh-key
+            #   mountPath: /etc/sourcegraph/sourcegraph.key
+            #   subPath: tls.key            
+      volumes:
+        - name: nfs-mount
+          persistentVolumeClaim:
+            claimName: pvc-nfs-gitlab-sourcegraph
+        - name: ssh-key
+          secret:
+            secretName: tls-devops-example-com

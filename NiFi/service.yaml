@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifi-azure-backup
+  namespace: prod
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      # nodePort: 32750
+
+    # - name: prometheus
+    #   port: 9092
+    #   targetPort: 9092
+    #   nodePort: 32701
+  selector:
+    app: nifi-azure-backup
